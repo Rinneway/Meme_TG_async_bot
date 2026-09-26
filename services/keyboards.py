@@ -1,7 +1,11 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from state import user_joke_cache
 from filters import RetryMemeCD, RetryJokeCD, ToggleLangCD
+
+main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="мем"), KeyboardButton(text="шутка")]
+], resize_keyboard=True, input_field_placeholder="Выберите действие или напишите.")
 
 
 def get_joke_keyboard(user_id: int):

@@ -40,6 +40,7 @@
 ├── state.py                # Глобальное состояние (сессия, кэш)
 ├── constants.py            # Константы и CallbackData классы
 ├── filters.py              # Алиасы для CallbackData
+
 ├── requirements.txt        # Зависимости Python
 ├── versel.json             # Параметры для Vercel
 │
@@ -60,3 +61,24 @@
 └── utils/                  # Вспомогательные функции
     ├── __init__.py         # Пустой файл
     └── helpers.py          # find_topic, send_joke, send_meme
+```
+
+## 📊 Архитектура БД
+
+```text
+categories (категории)
+├── id (INTEGER PRIMARY KEY)
+├── name (TEXT UNIQUE)         # Пример: "cats", "programming"
+├── display_name (TEXT)        # Пример: "Коты"
+└── is_active (BOOLEAN)        -- можно отключать категории
+
+keywords (ключевые слова)
+├── id (INTEGER PRIMARY KEY)
+── category_id (INTEGER FK)
+└── keyword (TEXT)             # Пример: "кот", "программ"
+
+subreddits (сабреддиты)
+├── id (INTEGER PRIMARY KEY)
+├── category_id (INTEGER FK)
+└── name (TEXT)                # Пример: "catmemes", "ProgrammerHumor"
+```

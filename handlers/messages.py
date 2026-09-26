@@ -1,10 +1,7 @@
-import asyncio
-
 from aiogram import Router, F
 from aiogram.types import Message
-from aiogram.enums import ChatAction
 
-from utils.helpers import find_topic, send_joke, send_meme
+from utils.helpers import send_joke, send_meme
 
 router = Router()
 
@@ -17,11 +14,5 @@ async def echo(message: Message):
         await send_joke(message)
         return
 
-    topic = find_topic(text)
-    if topic:
-        await send_meme(message, topic)
-        return
-
-    await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
-    await asyncio.sleep(0.3)
-    await message.answer("Неизвестная команда. Напиши /help, чтобы узнать, что я умею.")
+    # БД сама определит категорию по тексту
+    await send_meme(message, text)

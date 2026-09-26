@@ -3,19 +3,28 @@ import logging
 import aiohttp
 from urllib.parse import quote
 
-from constants import SUBREDDITS
+from databases.databases import find_category_by_text
+
+logger = logging.getLogger(__name__)
 
 
-async def get_meme_from_api(topic: str):
+async def get_meme_from_api(text: str):
+    """
+    Получает мем по тексту сообщения.
+    Автоматически определяет категорию через БД.
+    """
     try:
-        subreddits = SUBREDDITS.get(topic, SUBREDDITS["other"])
-        if not subreddits:
+        # Ищем категорию в БД
+        category = await find_category_by_text(text)
+
+        if not category:
+            logger.warning(f"No category found for text: {text}")
             return None
 
-        subreddit = random.choice(subreddits)
+        # Выбираем случайный сабреддит из категории
+        subreddit = random.choice(category["subreddits"])
         url = f"https://meme-api.com/gimme/{subreddit}"
 
-        # Создаём локальную сессию для каждого запроса
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
                 if resp.status != 200:
@@ -32,14 +41,16 @@ async def get_meme_from_api(topic: str):
 
                 return {
                     "url": meme_url,
-                    "subreddit": data.get("subreddit", subreddit)
+                    "subreddit": subreddit,
+                    "category_name": category["display_name"]
                 }
     except Exception as e:
-        logging.error(f"Meme fetch error: {e}")
+        logger.error(f"Meme fetch error: {e}")
         return None
 
 
 async def get_joke_from_api():
+    """Получает случайную шутку на английском."""
     try:
         url = "https://v2.jokeapi.dev/joke/Any?lang=en&blacklistFlags=nsfw,religious,political,racist,sexist,explicit"
 
@@ -65,11 +76,12 @@ async def get_joke_from_api():
                         return f"{setup}\n\n{delivery}"
                 return None
     except Exception as e:
-        logging.error(f"Joke fetch error: {e}")
+        logger.error(f"Joke fetch error: {e}")
         return None
 
 
 async def translate_text(text: str):
+    """Переводит текст с английского на русский."""
     try:
         if not text:
             return text
@@ -94,5 +106,5 @@ async def translate_text(text: str):
                 translated = response_data.get("translatedText")
                 return translated if translated else text
     except Exception as e:
-        logging.error(f"Translate error: {e}")
+        logger.error(f"Translate error: {e}")
         return text
