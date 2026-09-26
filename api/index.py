@@ -1,13 +1,11 @@
 import os
 import sys
 import logging
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
-import aiohttp
 
-# Добавляем родительскую папку в sys.path
+# Добавляем корень проекта в sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
@@ -15,12 +13,10 @@ if parent_dir not in sys.path:
 
 from config import BOT_TOKEN
 from handlers import commands_router, messages_router, callbacks_router
-import state
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Инициализация бота
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -29,17 +25,7 @@ dp.include_router(messages_router)
 dp.include_router(callbacks_router)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    state.session = aiohttp.ClientSession()
-    logger.info("Aiohttp session created")
-    yield
-    if state.session and not state.session.closed:
-        await state.session.close()
-        logger.info("Aiohttp session closed")
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 @app.get("/")
@@ -51,10 +37,8 @@ async def health_check():
 async def webhook(request: Request):
     try:
         data = await request.json()
-        logger.info(f"Received update: {data}")
-
+        logger.info(f"Received update")
         update = Update.model_validate(data, context={"bot": bot, "dispatcher": dp})
-
         await dp.feed_webhook_update(bot, update)
         return {"ok": True}
     except Exception as e:

@@ -1,86 +1,98 @@
 import random
 import logging
-import asyncio
+import aiohttp
 from urllib.parse import quote
 
-from state import session
 from constants import SUBREDDITS
 
 
 async def get_meme_from_api(topic: str):
-    subreddits = SUBREDDITS.get(topic, SUBREDDITS["other"])
-    subreddit = random.choice(subreddits)
-    url = f"https://meme-api.com/gimme/{subreddit}"
-
     try:
-        async with session.get(url, timeout=5) as resp:
-            if resp.status != 200:
-                return None
+        subreddits = SUBREDDITS.get(topic, SUBREDDITS["other"])
+        if not subreddits:
+            return None
 
-            data = await resp.json()
+        subreddit = random.choice(subreddits)
+        url = f"https://meme-api.com/gimme/{subreddit}"
 
-            if not data or not isinstance(data, dict):
-                return None
+        # Создаём локальную сессию для каждого запроса
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status != 200:
+                    return None
 
-            meme_url = data.get("url")
-            if not meme_url:
-                return None
+                data = await resp.json()
 
-            return {
-                "url": meme_url,
-                "subreddit": data.get("subreddit", subreddit)
-            }
+                if not data or not isinstance(data, dict):
+                    return None
+
+                meme_url = data.get("url")
+                if not meme_url:
+                    return None
+
+                return {
+                    "url": meme_url,
+                    "subreddit": data.get("subreddit", subreddit)
+                }
     except Exception as e:
         logging.error(f"Meme fetch error: {e}")
         return None
 
 
 async def get_joke_from_api():
-    url = "https://v2.jokeapi.dev/joke/Any?lang=en&blacklistFlags=nsfw,religious,political,racist,sexist,explicit"
     try:
-        async with session.get(url, timeout=5) as resp:
-            if resp.status != 200:
+        url = "https://v2.jokeapi.dev/joke/Any?lang=en&blacklistFlags=nsfw,religious,political,racist,sexist,explicit"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status != 200:
+                    return None
+
+                data = await resp.json()
+
+                if not data or not isinstance(data, dict):
+                    return None
+
+                if data.get("error"):
+                    return None
+
+                if data.get("type") == "single":
+                    return data.get("joke")
+                elif data.get("type") == "twopart":
+                    setup = data.get("setup")
+                    delivery = data.get("delivery")
+                    if setup and delivery:
+                        return f"{setup}\n\n{delivery}"
                 return None
-
-            data = await resp.json()
-
-            if not data or not isinstance(data, dict):
-                return None
-
-            if data.get("error"):
-                return None
-
-            if data.get("type") == "single":
-                return data.get("joke")
-            elif data.get("type") == "twopart":
-                setup = data.get("setup")
-                delivery = data.get("delivery")
-                if setup and delivery:
-                    return f"{setup}\n\n{delivery}"
-            return None
     except Exception as e:
         logging.error(f"Joke fetch error: {e}")
         return None
 
 
 async def translate_text(text: str):
-    if not text:
-        return text
-
-    encoded_text = quote(text)
-    url = f"https://api.mymemory.translated.net/get?q={encoded_text}&langpair=en|ru"
     try:
-        async with session.get(url, timeout=5) as resp:
-            if resp.status != 200:
-                return text
+        if not text:
+            return text
 
-            data = await resp.json()
+        encoded_text = quote(text)
+        url = f"https://api.mymemory.translated.net/get?q={encoded_text}&langpair=en|ru"
 
-            if not data or not isinstance(data, dict):
-                return text
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status != 200:
+                    return text
 
-            translated = data.get("responseData", {}).get("translatedText")
-            return translated if translated else text
+                data = await resp.json()
+
+                if not data or not isinstance(data, dict):
+                    return text
+
+                response_data = data.get("responseData")
+                if not response_data or not isinstance(response_data, dict):
+                    return text
+
+                translated = response_data.get("translatedText")
+                return translated if translated else text
     except Exception as e:
         logging.error(f"Translate error: {e}")
         return text
