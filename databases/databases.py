@@ -3,22 +3,22 @@ import sys
 import logging
 from typing import Optional, List, Dict
 
-from sqlalchemy import select, func, literal
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import selectinload
-
-# Добавляем корень проекта в sys.path, чтобы импортировать constants
+# Добавляем корень проекта в sys.path (для импорта constants)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = str(os.path.dirname(current_dir))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from models import Base, Category, Keyword, Subreddit
+from sqlalchemy import select, func, literal
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import selectinload
+
+from .models import Base, Category, Keyword, Subreddit
 from constants import MEME_KEYWORDS, TOPIC_NAMES, SUBREDDITS
 
 logger = logging.getLogger(__name__)
 
-# Для локальной разработки - файл, для Vercel - in-memory
+# Для локальной разработки — файл, для Vercel — in-memory
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot.db")
 
 engine = create_async_engine(
@@ -53,8 +53,6 @@ async def init_db():
 
 async def seed_initial_data(session: AsyncSession):
     """Заполняет БД данными из constants.py."""
-
-    # Собираем все категории в единый список
     categories_data = []
 
     for category_name in MEME_KEYWORDS:
@@ -65,20 +63,17 @@ async def seed_initial_data(session: AsyncSession):
             "subreddits": SUBREDDITS.get(category_name, [])
         })
 
-    # Вставляем в БД
     for cat_data in categories_data:
         category = Category(
             name=cat_data["name"],
             display_name=cat_data["display_name"]
         )
         session.add(category)
-        await session.flush()  # Получаем ID категории
+        await session.flush()
 
-        # Добавляем ключевые слова
         for keyword in cat_data["keywords"]:
             session.add(Keyword(category_id=category.id, keyword=keyword))
 
-        # Добавляем сабреддиты
         for subreddit in cat_data["subreddits"]:
             session.add(Subreddit(category_id=category.id, name=subreddit))
 

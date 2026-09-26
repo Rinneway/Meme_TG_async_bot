@@ -5,7 +5,7 @@ from aiogram.filters import Command, CommandStart, CommandObject
 from aiogram.enums import ChatAction
 
 from constants import admins
-from databases.databases import get_all_active_categories, add_category, delete_category, get_category_stats
+from databases import get_all_active_categories, add_category, delete_category, get_category_stats
 from services.keyboards import main_menu_keyboard
 
 router = Router()
