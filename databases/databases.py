@@ -1,27 +1,32 @@
-import json
 import os
+import sys
 import logging
 from typing import Optional, List, Dict
-from sqlalchemy import select, func, text
+
+from sqlalchemy import select, func, literal
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
+# Добавляем корень проекта в sys.path, чтобы импортировать constants
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = str(os.path.dirname(current_dir))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from models import Base, Category, Keyword, Subreddit
+from constants import MEME_KEYWORDS, TOPIC_NAMES, SUBREDDITS
 
 logger = logging.getLogger(__name__)
 
-# Для Vercel используем SQLite in-memory, для локальной разработки — файл
-# Можно легко переключить на PostgreSQL: postgresql+asyncpg://user:pass@localhost/dbname
+# Для локальной разработки - файл, для Vercel - in-memory
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot.db")
 
-# Создаём движок
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # True для отладки SQL-запросов
+    echo=False,
     future=True
 )
 
-# Создаём фабрику сессий
 async_session_maker = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -34,13 +39,12 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Проверяем, есть ли данные
     async with async_session_maker() as session:
         result = await session.execute(select(func.count(Category.id)))
         count = result.scalar()
 
         if count == 0:
-            logger.info("Database is empty, seeding initial data...")
+            logger.info("Database is empty, seeding initial data from constants.py...")
             await seed_initial_data(session)
             await session.commit()
 
@@ -48,49 +52,51 @@ async def init_db():
 
 
 async def seed_initial_data(session: AsyncSession):
-    """Заполняет БД начальными данными из JSON."""
-    json_path = os.path.join(str(os.path.dirname(__file__)), "categories.json")
+    """Заполняет БД данными из constants.py."""
 
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # Собираем все категории в единый список
+    categories_data = []
 
-    for category_data in data["categories"]:
-        # Создаём категорию
+    for category_name in MEME_KEYWORDS:
+        categories_data.append({
+            "name": category_name,
+            "display_name": TOPIC_NAMES.get(category_name, category_name),
+            "keywords": MEME_KEYWORDS[category_name],
+            "subreddits": SUBREDDITS.get(category_name, [])
+        })
+
+    # Вставляем в БД
+    for cat_data in categories_data:
         category = Category(
-            name=category_data["name"],
-            display_name=category_data["display_name"]
+            name=cat_data["name"],
+            display_name=cat_data["display_name"]
         )
         session.add(category)
         await session.flush()  # Получаем ID категории
 
         # Добавляем ключевые слова
-        for keyword in category_data["keywords"]:
+        for keyword in cat_data["keywords"]:
             session.add(Keyword(category_id=category.id, keyword=keyword))
 
         # Добавляем сабреддиты
-        for subreddit in category_data["subreddits"]:
+        for subreddit in cat_data["subreddits"]:
             session.add(Subreddit(category_id=category.id, name=subreddit))
 
     await session.commit()
-    logger.info("Initial data seeded successfully")
+    logger.info(f"Seeded {len(categories_data)} categories from constants.py")
 
 
 async def find_category_by_text(_text: str) -> Optional[Dict]:
-    """
-    Ищет категорию по тексту сообщения.
-    Возвращает dict с данными или None.
-    """
+    """Ищет категорию по тексту сообщения."""
     text_lower = _text.lower()
 
     async with async_session_maker() as session:
-        # Ищем совпадение по ключевому слову (LIKE для частичного совпадения)
-        # Сортируем по длине ключа (более длинные = более точные)
         query = (
             select(Category)
             .join(Keyword, Category.id == Keyword.category_id)
             .where(
                 Category.is_active == True,
-                text.like(f"%{Keyword.keyword}%")
+                literal(text_lower).like(f"%{Keyword.keyword}%")
             )
             .order_by(func.length(Keyword.keyword).desc())
             .limit(1)
@@ -130,10 +136,9 @@ async def add_category(
         keywords: List[str],
         subreddits: List[str]
 ) -> bool:
-    """Добавляет новую категорию. Возвращает True при успехе."""
+    """Добавляет новую категорию."""
     try:
         async with async_session_maker() as session:
-            # Проверяем уникальность имени
             existing = await session.execute(
                 select(Category).where(Category.name == name)
             )
@@ -141,16 +146,13 @@ async def add_category(
                 logger.warning(f"Category '{name}' already exists")
                 return False
 
-            # Создаём категорию
             category = Category(name=name, display_name=display_name)
             session.add(category)
             await session.flush()
 
-            # Добавляем ключевые слова
             for keyword in keywords:
                 session.add(Keyword(category_id=category.id, keyword=keyword))
 
-            # Добавляем сабреддиты
             for subreddit in subreddits:
                 session.add(Subreddit(category_id=category.id, name=subreddit))
 
@@ -162,7 +164,7 @@ async def add_category(
 
 
 async def delete_category(name: str) -> bool:
-    """Помечает категорию как неактивную (мягкое удаление)."""
+    """Помечает категорию как неактивную."""
     async with async_session_maker() as session:
         result = await session.execute(
             select(Category).where(Category.name == name)

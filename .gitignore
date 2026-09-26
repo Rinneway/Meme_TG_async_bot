@@ -65,9 +65,9 @@ htmlcov/
 *.iws
 
 # Database
-*.db
-*.sqlite
-*.sqlite3
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # Secrets
 *.key
