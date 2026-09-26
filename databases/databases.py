@@ -51,7 +51,12 @@ async def init_db():
             await seed_initial_data(session)
             await session.commit()
 
-    logger.info("Database initialized successfully")
+            # Проверяем, сколько записалось
+            result = await session.execute(select(func.count(Category.id)))
+            new_count = result.scalar()
+            logger.info(f"Successfully seeded {new_count} categories into DB!")
+        else:
+            logger.info(f"Database already has {count} categories, skipping seed.")
 
 
 async def seed_initial_data(session: AsyncSession):
@@ -87,14 +92,16 @@ async def seed_initial_data(session: AsyncSession):
 async def find_category_by_text(_text: str) -> Optional[Dict]:
     """Ищет категорию по тексту сообщения."""
     text_lower = _text.lower()
+    logger.info(f"Searching category for text: '{text_lower}'")
 
     async with async_session_maker() as session:
+        # func.instr(text_lower, Keyword.keyword) > 0 означает, что keyword найден внутри text_lower
         query = (
             select(Category)
             .join(Keyword, Category.id == Keyword.category_id)
             .where(
                 Category.is_active == True,
-                literal(text_lower).like(f"%{Keyword.keyword}%")
+                func.instr(text_lower, Keyword.keyword) > 0
             )
             .order_by(func.length(Keyword.keyword).desc())
             .limit(1)
@@ -105,15 +112,16 @@ async def find_category_by_text(_text: str) -> Optional[Dict]:
         category = result.scalar_one_or_none()
 
         if not category:
+            logger.warning(f"No category found for: '{text_lower}'")
             return None
 
+        logger.info(f"Found category: {category.name}")
         return {
             "id": category.id,
             "name": category.name,
             "display_name": category.display_name,
             "subreddits": [sub.name for sub in category.subreddits]
         }
-
 
 async def get_all_active_categories() -> List[Dict]:
     """Возвращает все активные категории."""
