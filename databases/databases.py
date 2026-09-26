@@ -19,7 +19,10 @@ from constants import MEME_KEYWORDS, TOPIC_NAMES, SUBREDDITS
 logger = logging.getLogger(__name__)
 
 # Для локальной разработки — файл, для Vercel — in-memory
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot.db")
+if os.getenv("VERCEL"):
+    DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot.db")
 
 engine = create_async_engine(
     DATABASE_URL,
