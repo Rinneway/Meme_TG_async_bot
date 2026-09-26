@@ -13,7 +13,7 @@ if parent_dir not in sys.path:
 
 from config import BOT_TOKEN
 from handlers import commands_router, messages_router, callbacks_router
-from databases.databases import init_db
+from databases import init_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
