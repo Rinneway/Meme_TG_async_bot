@@ -35,7 +35,6 @@
 
 ```text
 ├── main.py                 # Точка входа (запуск бота)
-├── index.py                # Инициализация бота через webhooks
 ├── bot.py                  # Создание Bot и Dispatcher, регистрация роутеров
 ├── config.py               # Конфигурация (токен бота)
 ├── state.py                # Глобальное состояние (сессия, кэш)
@@ -44,11 +43,14 @@
 ├── requirements.txt        # Зависимости Python
 ├── versel.json             # Параметры для Vercel
 │
+├── api/
+|   └── index.py                # Инициализация бота через webhooks
+|
 ├── handlers/               # Обработчики сообщений и команд
 │   ├── __init__.py         # Импорт роутеров
 │   ├── commands.py         # /start, /help
 │   ├── messages.py         # Обработка текста
-│   ── callbacks.py        # Inline-кнопки
+│   └── callbacks.py        # Inline-кнопки
 │
 ├── services/               # Внешние сервисы и API
 │   ├── __init__.py         # Пустой файл

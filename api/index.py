@@ -7,21 +7,23 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 import aiohttp
 
-# Добавляем корень проекта в пути, чтобы импорты работали
-sys.path.append(str(os.path.join(str(os.path.dirname(__file__)), '..')))
+# Добавляем родительскую папку в sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, str(parent_dir))
 
 from config import BOT_TOKEN
 from handlers import commands_router, messages_router, callbacks_router
 import state
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Инициализация бота
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Подключаем роутеры
 dp.include_router(commands_router)
 dp.include_router(messages_router)
 dp.include_router(callbacks_router)
@@ -29,34 +31,32 @@ dp.include_router(callbacks_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: инициализация при запуске
     state.session = aiohttp.ClientSession()
-    logging.info("Aiohttp session created")
+    logger.info("Aiohttp session created")
     yield
-    # Shutdown: очистка при завершении
     if state.session and not state.session.closed:
         await state.session.close()
-        logging.info("Aiohttp session closed")
+        logger.info("Aiohttp session closed")
 
 
-# Создаем FastAPI приложение с lifespan
 app = FastAPI(lifespan=lifespan)
-
-
-@app.post("/")
-async def webhook(request: Request):
-    """Обработчик входящих обновлений от Telegram"""
-    try:
-        data = await request.json()
-        update = Update.model_validate(data, context=bot)
-        await dp.feed_webhook_update(bot, update)
-        return {"ok": True}
-    except Exception as e:
-        logging.error(f"Webhook error: {e}", exc_info=True)
-        return {"ok": False}
 
 
 @app.get("/")
 async def health_check():
-    """Проверка: если открыть ссылку в браузере, увидим это"""
     return {"status": "ok", "message": "Bot is running on Vercel!"}
+
+
+@app.post("/")
+async def webhook(request: Request):
+    try:
+        data = await request.json()
+        logger.info(f"Received update: {data}")
+
+        update = Update.model_validate(data, context={"bot": bot, "dispatcher": dp})
+
+        await dp.feed_webhook_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}", exc_info=True)
+        return {"ok": False, "error": str(e)}
