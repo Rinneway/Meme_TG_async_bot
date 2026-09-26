@@ -35,12 +35,14 @@
 
 ```text
 ├── main.py                 # Точка входа (запуск бота)
+├── index.py                # Инициализация бота через webhooks
 ├── bot.py                  # Создание Bot и Dispatcher, регистрация роутеров
 ├── config.py               # Конфигурация (токен бота)
 ├── state.py                # Глобальное состояние (сессия, кэш)
 ├── constants.py            # Константы и CallbackData классы
 ├── filters.py              # Алиасы для CallbackData
 ├── requirements.txt        # Зависимости Python
+├── versel.json             # Параметры для Vercel
 │
 ├── handlers/               # Обработчики сообщений и команд
 │   ├── __init__.py         # Импорт роутеров
