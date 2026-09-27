@@ -5,7 +5,7 @@ from filters import RetryMemeCD, ToggleLangCD
 
 main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="мем"), KeyboardButton(text="шутка")]
-], resize_keyboard=True, input_field_placeholder="Выберите действие или напишите.")
+], resize_keyboard=True, input_field_placeholder="Выберите действие.")
 
 
 def get_joke_keyboard(user_id: int, message_id: int):
@@ -24,5 +24,5 @@ def get_joke_keyboard(user_id: int, message_id: int):
 
 def get_meme_keyboard(topic: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=" Еще мем", callback_data=RetryMemeCD(topic=topic).pack())]
+        [InlineKeyboardButton(text="Еще мем", callback_data=RetryMemeCD(topic=topic).pack())]
     ])
