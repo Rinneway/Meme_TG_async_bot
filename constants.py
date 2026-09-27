@@ -50,13 +50,13 @@ TOPIC_NAMES = {
 
 # Подобраны самые активные и релевантные сабреддиты для каждой категории
 SUBREDDITS = {
-    "cats": ["catmemes", "CatHumor", "cats", "IlIlIlIlIlIlIlIlIlIlI", "chonkers"],
-    "programming": ["ProgrammerHumor", "ProgrammerDadJokes", "codingmemes", "softwaregore", "techsupportgore"],
-    "gaming": ["gaming", "pcgaming", "gamer", "btd6", "unexpected"],
-    "anime": ["animemes", "anime", "manga", "wholesomeanimemes"],
-    "work": ["antiwork", "work", "office", "badworkstories", "shittywork"],
+    "cats": ["catmemes", "cathumor", "cats", "catsareliquid", "chonkers"],
+    "programming": ["programmerhumor", "programmerdadjokes", "codingmemes", "softwaregore", "techsupportgore"],
+    "gaming": ["gamingmemes", "gaming", "games", "gamephysics", "pcmasterrace"],
+    "anime": ["animemes", "anime", "manga", "wholesomeanimemes", "goodanimemes"],
+    "work": ["antiwork", "workplacehumor", "office", "coworkerstories", "talesfromthejob"],
     "study": ["schoolmemes", "college", "science", "math", "engineering"],
-    "other": ["memes", "dankmemes", "funny", "me_irl", "wholesome", "trashy"],
+    "other": ["memes", "dankmemes", "wholesomememes", "me_irl"],
 }
 
 
