@@ -16,6 +16,7 @@ async def send_joke(message: Message, is_callback: bool = False):
     """Отправляет шутку пользователю."""
     chat_id = message.chat.id
     user_id = message.from_user.id
+    message_id = message.message_id
 
     for attempt in range(3):
         await message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
@@ -24,7 +25,7 @@ async def send_joke(message: Message, is_callback: bool = False):
         if joke_en:
             joke_ru = await translate_text(joke_en)
 
-            user_joke_cache[user_id] = {
+            user_joke_cache[user_id][message_id] = {
                 "en": joke_en,
                 "ru": joke_ru,
                 "current": "ru"

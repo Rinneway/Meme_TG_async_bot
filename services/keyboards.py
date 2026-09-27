@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, message_id
 
 from state import user_joke_cache
 from filters import RetryMemeCD, RetryJokeCD, ToggleLangCD
@@ -14,11 +14,12 @@ def get_joke_keyboard(user_id: int):
     ]
 
     if user_id in user_joke_cache:
-        current_lang = user_joke_cache[user_id]["current"]
-        if current_lang == "ru":
-            buttons.append([InlineKeyboardButton(text="🇬🇧 English", callback_data=ToggleLangCD().pack())])
-        else:
-            buttons.append([InlineKeyboardButton(text="🇷🇺 Русский", callback_data=ToggleLangCD().pack())])
+        if message_id in user_joke_cache[user_id]:
+            current_lang = user_joke_cache[user_id][message_id]["current"]
+            if current_lang == "ru":
+                buttons.append([InlineKeyboardButton(text="🇬🇧 English", callback_data=ToggleLangCD().pack())])
+            else:
+                buttons.append([InlineKeyboardButton(text="🇷🇺 Русский", callback_data=ToggleLangCD().pack())])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

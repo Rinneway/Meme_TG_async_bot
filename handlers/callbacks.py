@@ -23,15 +23,17 @@ async def cb_toggle_lang(callback: CallbackQuery):
     await callback.answer()
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
+    message_id = callback.message.message_id
 
     if user_id not in user_joke_cache:
-        await callback.message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
-        await asyncio.sleep(0.3)
-        await callback.message.edit_text("Кэш очищен. Запрашиваю новую шутку...")
-        await send_joke(callback.message, is_callback=True)
-        return
+        if message_id not in user_joke_cache[user_id]:
+            await callback.message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+            await asyncio.sleep(0.3)
+            await callback.message.edit_text("Кэш очищен. Запрашиваю новую шутку...")
+            await send_joke(callback.message, is_callback=True)
+            return
 
-    cache = user_joke_cache[user_id]
+    cache = user_joke_cache[user_id][message_id]
 
     await callback.message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     await asyncio.sleep(0.3)
@@ -41,13 +43,13 @@ async def cb_toggle_lang(callback: CallbackQuery):
         await callback.message.edit_text(
             text=f"🇬 *Original:*\n\n{cache['en']}",
             parse_mode="Markdown",
-            reply_markup=get_joke_keyboard(user_id)
+            reply_markup=get_joke_keyboard(user_id, message_id)
         )
     else:
         cache["current"] = "ru"
         await callback.message.edit_text(
             text=cache["ru"],
-            reply_markup=get_joke_keyboard(user_id)
+            reply_markup=get_joke_keyboard(user_id, message_id)
         )
 
 
