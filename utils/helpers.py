@@ -25,6 +25,8 @@ async def send_joke(message: Message, is_callback: bool = False):
         if joke_en:
             joke_ru = await translate_text(joke_en)
 
+            if user_id not in user_joke_cache:
+                user_joke_cache[user_id] = {}
             user_joke_cache[user_id] = {message_id: {
                 "en": joke_en,
                 "ru": joke_ru,
