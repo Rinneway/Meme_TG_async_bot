@@ -9,7 +9,7 @@ project_root = str(os.path.dirname(current_dir))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from sqlalchemy import select, func, literal
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
@@ -79,6 +79,8 @@ async def seed_initial_data(session: AsyncSession):
         session.add(category)
         await session.flush()
 
+        session.add(Keyword(category_id=category.id, keyword=cat_data["name"]))
+
         for keyword in cat_data["keywords"]:
             session.add(Keyword(category_id=category.id, keyword=keyword))
 
@@ -86,7 +88,6 @@ async def seed_initial_data(session: AsyncSession):
             session.add(Subreddit(category_id=category.id, name=subreddit))
 
     await session.commit()
-    logger.info(f"Seeded {len(categories_data)} categories from constants.py")
 
 
 async def find_category_by_text(_text: str) -> Optional[Dict]:

@@ -63,7 +63,7 @@ async def send_meme(message: Message, text: str):
                 await message.answer_photo(
                     photo=URLInputFile(url=meme_data["url"]),
                     caption=f"Мем по теме: {meme_data['category_name']}",
-                    reply_markup=get_meme_keyboard(meme_data['subreddit'])
+                    reply_markup=get_meme_keyboard(meme_data['name'])
                 )
                 return
             except Exception as e:

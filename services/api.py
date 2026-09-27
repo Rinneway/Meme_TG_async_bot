@@ -10,19 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 async def get_meme_from_api(text: str):
-    """
-    Получает мем по тексту сообщения.
-    Автоматически определяет категорию через БД.
-    """
     try:
-        # Ищем категорию в БД
         category = await find_category_by_text(text)
 
         if not category:
             logger.warning(f"No category found for text: {text}")
             return None
 
-        # Выбираем случайный сабреддит из категории
         subreddit = random.choice(category["subreddits"])
         url = f"https://meme-api.com/gimme/{subreddit}"
 
@@ -43,6 +37,7 @@ async def get_meme_from_api(text: str):
                 return {
                     "url": meme_url,
                     "subreddit": subreddit,
+                    "name": category["name"],
                     "category_name": category["display_name"]
                 }
     except Exception as e:
