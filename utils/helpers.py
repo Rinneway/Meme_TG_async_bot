@@ -32,11 +32,11 @@ async def send_joke(message: Message, is_callback: bool = False):
             }}
 
             await asyncio.sleep(0.3)
-            await message.answer(joke_ru, reply_markup=get_joke_keyboard(user_id))
+            await message.answer(joke_ru, reply_markup=get_joke_keyboard(user_id, message_id))
             return
 
     await asyncio.sleep(0.3)
-    kb = get_joke_keyboard(user_id) if is_callback else InlineKeyboardMarkup(inline_keyboard=[
+    kb = get_joke_keyboard(user_id, message_id) if is_callback else InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=" Повторить", callback_data=RetryJokeCD().pack())]
     ])
     await message.answer("😕 Не удалось получить шутку. Попробуй ещё раз!", reply_markup=kb)
