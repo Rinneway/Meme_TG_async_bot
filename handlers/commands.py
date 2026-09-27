@@ -116,6 +116,7 @@ async def cmd_delete_category(message: Message):
         await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
         await asyncio.sleep(0.3)
         await message.answer("Нет нужных прав доступа.")
+        return 
 
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
@@ -143,6 +144,7 @@ async def cmd_stats(message: Message):
         await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
         await asyncio.sleep(0.3)
         await message.answer("Нет нужных прав доступа.")
+        return
 
     await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
 
