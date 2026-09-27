@@ -15,7 +15,7 @@ router = Router()
 @router.callback_query(RetryJokeCD.filter())
 async def cb_retry_joke(callback: CallbackQuery):
     await callback.answer()
-    await send_joke(callback.message, is_callback=True)
+    await send_joke(callback.message)
 
 
 @router.callback_query(ToggleLangCD.filter())
@@ -29,7 +29,7 @@ async def cb_toggle_lang(callback: CallbackQuery):
         await callback.message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
         await asyncio.sleep(0.3)
         await callback.message.edit_text("Кэш очищен. Запрашиваю новую шутку...")
-        await send_joke(callback.message, is_callback=True)
+        await send_joke(callback.message)
         return
 
     cache = user_joke_cache[user_id][message_id]

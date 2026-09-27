@@ -12,11 +12,10 @@ from state import user_joke_cache
 logger = logging.getLogger(__name__)
 
 
-async def send_joke(message: Message, is_callback: bool = False):
+async def send_joke(message: Message):
     """Отправляет шутку пользователю."""
     chat_id = message.chat.id
     user_id = message.from_user.id
-    message_id = message.message_id
 
     for attempt in range(3):
         await message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
@@ -25,23 +24,25 @@ async def send_joke(message: Message, is_callback: bool = False):
         if joke_en:
             joke_ru = await translate_text(joke_en)
 
+            sent_message = await message.answer(
+                joke_ru,
+                reply_markup=get_joke_keyboard(user_id, message_id=0)
+            )
+            bot_message_id = sent_message.message_id
+
             if user_id not in user_joke_cache:
                 user_joke_cache[user_id] = {}
-            user_joke_cache[user_id] = {message_id: {
+            user_joke_cache[user_id][bot_message_id] = {
                 "en": joke_en,
                 "ru": joke_ru,
                 "current": "ru"
-            }}
+            }
 
-            await asyncio.sleep(0.3)
-            await message.answer(joke_ru, reply_markup=get_joke_keyboard(user_id, message_id))
+            logger.info(f"✅ Joke saved in cache: user={user_id}, msg_id={bot_message_id}")
             return
 
     await asyncio.sleep(0.3)
-    kb = get_joke_keyboard(user_id, message_id) if is_callback else InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=" Повторить", callback_data=RetryJokeCD().pack())]
-    ])
-    await message.answer("😕 Не удалось получить шутку. Попробуй ещё раз!", reply_markup=kb)
+    await message.answer("😕 Не удалось получить шутку. Попробуй ещё раз!")
 
 
 async def send_meme(message: Message, text: str):
