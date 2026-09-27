@@ -1,3 +1,3 @@
-from constants import RetryMemeCD, RetryJokeCD, ToggleLangCD
+from constants import RetryMemeCD, ToggleLangCD
 
-__all__ = ["RetryMemeCD", "RetryJokeCD", "ToggleLangCD"]
+__all__ = ["RetryMemeCD", "ToggleLangCD"]

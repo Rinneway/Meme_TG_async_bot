@@ -64,9 +64,5 @@ class RetryMemeCD(CallbackData, prefix="rm"):
     topic: str
 
 
-class RetryJokeCD(CallbackData, prefix="rj"):
-    pass
-
-
 class ToggleLangCD(CallbackData, prefix="tl"):
     pass

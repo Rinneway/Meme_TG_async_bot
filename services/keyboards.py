@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from state import user_joke_cache
-from filters import RetryMemeCD, RetryJokeCD, ToggleLangCD
+from filters import RetryMemeCD, ToggleLangCD
 
 main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="мем"), KeyboardButton(text="шутка")]
@@ -9,9 +9,7 @@ main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
 
 
 def get_joke_keyboard(user_id: int, message_id: int):
-    buttons = [
-        [InlineKeyboardButton(text="🔄 Еще шутку", callback_data=RetryJokeCD().pack())]
-    ]
+    buttons = []
 
     if user_id in user_joke_cache:
         if message_id in user_joke_cache[user_id]:
