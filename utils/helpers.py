@@ -4,9 +4,9 @@ import logging
 from aiogram.types import Message, URLInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatAction
 
+from constants import RetryJokeCD
 from services.api import get_meme_from_api, get_joke_from_api, translate_text
 from services.keyboards import get_joke_keyboard, get_meme_keyboard
-from filters import RetryJokeCD
 from state import user_joke_cache
 
 logger = logging.getLogger(__name__)
@@ -24,10 +24,12 @@ async def send_joke(message: Message):
         if joke_en:
             joke_ru = await translate_text(joke_en)
 
-            sent_message = await message.answer(
-                joke_ru,
-                reply_markup=get_joke_keyboard(user_id, message_id=0)
-            )
+            # 1. Сначала отправляем сообщение БЕЗ кнопки языка
+            temp_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔄 Еще шутку", callback_data=RetryJokeCD().pack())]
+            ])
+
+            sent_message = await message.answer(joke_ru, reply_markup=temp_keyboard)
             bot_message_id = sent_message.message_id
 
             if user_id not in user_joke_cache:
@@ -38,7 +40,15 @@ async def send_joke(message: Message):
                 "current": "ru"
             }
 
-            logger.info(f"✅ Joke saved in cache: user={user_id}, msg_id={bot_message_id}")
+            logger.info(f"Joke cached: user={user_id}, bot_msg_id={bot_message_id}")
+
+            try:
+                await sent_message.edit_reply_markup(
+                    reply_markup=get_joke_keyboard(user_id, bot_message_id)
+                )
+            except Exception as e:
+                logger.warning(f"Could not update keyboard: {e}")
+
             return
 
     await asyncio.sleep(0.3)
