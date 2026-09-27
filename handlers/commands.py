@@ -7,6 +7,7 @@ from aiogram.enums import ChatAction
 from constants import admins
 from databases import get_all_active_categories, add_category, delete_category, get_category_stats
 from services.keyboards import main_menu_keyboard
+from utils.helpers import send_joke, send_meme
 
 router = Router()
 
@@ -33,19 +34,51 @@ async def cmd_start_default(message: Message):
     )
 
 
+@router.message(Command("joke"))
+async def cmd_joke(message: Message):
+    """Команда /joke — отправить шутку."""
+    await send_joke(message)
+
+
+@router.message(Command("meme"))
+async def cmd_meme(message: Message, command: CommandObject):
+    """
+    Команда /meme — отправить мем.
+    Использование:
+    /meme — случайный мем из категории "other"
+    /meme cats — мем про котов
+    /meme programming — мем про программирование
+    """
+    # Получаем аргумент команды (если есть)
+    topic = command.args
+
+    if topic:
+        # Пользователь указал тему: /meme cats
+        await send_meme(message, topic)
+    else:
+        # Без аргумента — используем дефолтную категорию "other"
+        await send_meme(message, "мем")
+
+
 @router.message(Command("help"))
 async def cmd_help(message: Message):
-    await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
-
+    """Команда /help — показать список доступных категорий."""
     categories = await get_all_active_categories()
-    topics = ", ".join([cat["display_name"] for cat in categories])
 
-    await asyncio.sleep(0.1)
-    await message.answer(
-        f"Привет, {message.from_user.full_name}!\n"
-        f"Доступные тематики мемов: {topics}.\n"
-        "Также можно написать «шутка», «прикол» или «анекдот»."
-    )
+    text = "🤖 <b>Доступные команды:</b>\n\n"
+    text += "/joke — случайная шутка с переводом\n"
+    text += "/meme [тема] — мем по теме\n\n"
+    text += "<b>Доступные темы для мемов:</b>\n"
+
+    for cat in categories:
+        text += f"• {cat['display_name']} (<code>{cat['name']}</code>)\n"
+
+    text += "\n<b>Примеры:</b>\n"
+    text += "/meme cats\n"
+    text += "/meme programming\n"
+    text += "/meme gaming"
+
+    await message.answer(text, parse_mode="HTML")
 
 
 @router.message(Command("categories"))
@@ -116,7 +149,7 @@ async def cmd_delete_category(message: Message):
         await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
         await asyncio.sleep(0.3)
         await message.answer("Нет нужных прав доступа.")
-        return 
+        return
 
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
@@ -155,6 +188,6 @@ async def cmd_stats(message: Message):
         f"• Ключевых слов: {stats['keywords']}\n"
         f"• Сабреддитов: {stats['subreddits']}"
     )
-    
+
     await asyncio.sleep(0.1)
     await message.answer(text)
