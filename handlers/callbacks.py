@@ -54,4 +54,4 @@ async def cb_toggle_lang(callback: CallbackQuery):
 @router.callback_query(RetryMemeCD.filter())
 async def cb_retry_meme(callback: CallbackQuery, callback_data: RetryMemeCD):
     await callback.answer()
-    await send_meme(callback.message, callback_data.topic, is_callback=True)
+    await send_meme(callback.message, callback_data.topic)
