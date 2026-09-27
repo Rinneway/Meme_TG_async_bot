@@ -25,11 +25,11 @@ async def send_joke(message: Message, is_callback: bool = False):
         if joke_en:
             joke_ru = await translate_text(joke_en)
 
-            user_joke_cache[user_id][message_id] = {
+            user_joke_cache[user_id] = {message_id: {
                 "en": joke_en,
                 "ru": joke_ru,
                 "current": "ru"
-            }
+            }}
 
             await asyncio.sleep(0.3)
             await message.answer(joke_ru, reply_markup=get_joke_keyboard(user_id))
