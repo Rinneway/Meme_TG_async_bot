@@ -3,7 +3,7 @@ import aiohttp
 from urllib.parse import quote
 
 from databases import find_category_by_text
-from pinterest_client import get_random_pin
+from services.pinterest_client import get_random_pin
 from constants import PINTEREST_QUERIES
 
 logger = logging.getLogger(__name__)
