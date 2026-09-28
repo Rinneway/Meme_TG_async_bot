@@ -43,7 +43,7 @@
 ├── versel.json             # Параметры для Vercel
 │
 ├── api/
-|   └── index.py                # Инициализация бота через webhooks
+|   └── index.py                # Инициализация бота через webhooks для Vercel
 |
 ├── databases/
 │   ├── __init__.py         # Импорт всех функций и моделей
