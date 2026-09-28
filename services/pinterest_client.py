@@ -1,9 +1,10 @@
+import os
 import logging
 import random
 from typing import List, Optional
 
 from py3pin.Pinterest import Pinterest
-from config import PINTEREST_EMAIL, PINTEREST_PASSWORD, PINTEREST_CSRFTOKEN, PINTEREST_SESSION
+from config import PINTEREST_EMAIL, PINTEREST_PASSWORD
 
 logger = logging.getLogger(__name__)
 
@@ -11,27 +12,28 @@ pinterest_client: Optional[Pinterest] = None
 
 
 def get_pinterest_client() -> Pinterest:
+    """Инициализирует клиент Pinterest"""
     global pinterest_client
 
     if pinterest_client is None:
-        # Пробуем через cookies (надёжнее)
-        if PINTEREST_CSRFTOKEN and PINTEREST_SESSION:
-            pinterest_client = Pinterest(
-                email=PINTEREST_EMAIL,
-                password=PINTEREST_PASSWORD,
-                cred_root="pinterest_cookies"  # папка для хранения cookies
-            )
+        if not PINTEREST_EMAIL or not PINTEREST_PASSWORD:
+            raise ValueError("Pinterest credentials not set in Environment Variables")
+
+        cred_root = "/tmp/pinterest_cookies"
+        os.makedirs(cred_root, exist_ok=True)
+
+        pinterest_client = Pinterest(
+            email=PINTEREST_EMAIL,
+            password=PINTEREST_PASSWORD,
+            cred_root=cred_root
+        )
+
+        try:
             pinterest_client.login()
-            logger.info("✅ Pinterest client initialized with cookies")
-        elif PINTEREST_EMAIL and PINTEREST_PASSWORD:
-            pinterest_client = Pinterest(
-                email=PINTEREST_EMAIL,
-                password=PINTEREST_PASSWORD
-            )
-            pinterest_client.login()
-            logger.info("✅ Pinterest client initialized with email/password")
-        else:
-            raise ValueError("Pinterest credentials not set")
+            logger.info("✅ Pinterest client initialized and logged in")
+        except Exception as e:
+            logger.error(f"❌ Pinterest login failed: {e}")
+            raise e
 
     return pinterest_client
 
@@ -46,12 +48,22 @@ async def search_pins(query: str, limit: int = 50) -> List[dict]:
             if count >= limit:
                 break
 
-            if pin.get('images') and pin['images'].get('orig'):
-                pins.append({
-                    'url': pin['images']['orig']['url'],
-                    'id': pin.get('id'),
-                    'description': pin.get('description', '')
-                })
+            # Проверяем наличие картинки
+            images = pin.get('images')
+            if images:
+                # Берем оригинал или максимальный доступный размер
+                img_url = None
+                if 'orig' in images:
+                    img_url = images['orig']['url']
+                elif '736x' in images:
+                    img_url = images['736x']['url']
+
+                if img_url:
+                    pins.append({
+                        'url': img_url,
+                        'id': pin.get('id'),
+                        'description': pin.get('description', '')
+                    })
             count += 1
 
         logger.info(f"Found {len(pins)} pins for query: {query}")
