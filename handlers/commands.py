@@ -84,21 +84,15 @@ async def cmd_help(message: Message):
 @router.message(Command("categories"))
 async def cmd_categories(message: Message):
     """Показать все активные категории."""
-    if message.from_user.id not in admins:
-        await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
-        await asyncio.sleep(0.3)
-        await message.answer("Нет нужных прав доступа.")
-        return
-
     await message.bot.send_chat_action(chat_id=message.chat.id, action=ChatAction.TYPING)
     categories = await get_all_active_categories()
 
-    text = "📋 Активные категории:\n\n"
+    text = "📋 <b>Активные категории:</b>\n\n"
     for cat in categories:
-        text += f"• {cat['display_name']} (`{cat['name']}`)\n"
+        text += f"• {cat['display_name']} (<code>{cat['name']}</code>)\n"
 
     await asyncio.sleep(0.1)
-    await message.answer(text)
+    await message.answer(text, parse_mode="HTML")
 
 
 @router.message(Command("add_category"))
