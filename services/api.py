@@ -44,8 +44,7 @@ async def get_meme_from_api(text: str):
 async def get_joke_from_api():
     """Получает случайную шутку на английском."""
     try:
-        url = "https://v2.jokeapi.dev/joke/Any?lang=en&blacklistFlags=nsfw,religious,political,racist,sexist,explicit"
-
+        url = "https://v2.jokeapi.dev/joke/Any?lang=en"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
                 if resp.status != 200:
