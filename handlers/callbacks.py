@@ -14,6 +14,8 @@ router = Router()
 
 @router.callback_query(ToggleLangCD.filter())
 async def cb_toggle_lang(callback: CallbackQuery):
+    global user_joke_cache
+
     await callback.answer()
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
@@ -23,6 +25,7 @@ async def cb_toggle_lang(callback: CallbackQuery):
         await callback.message.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
         await asyncio.sleep(0.3)
         await callback.message.edit_text("Кэш был очищен. Запросите новую шутку.")
+        user_joke_cache = {}
         return
 
     cache = user_joke_cache[user_id][message_id]
