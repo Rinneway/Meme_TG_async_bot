@@ -8,16 +8,16 @@ main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
 ], resize_keyboard=True, input_field_placeholder="Выберите действие.")
 
 
-def get_joke_keyboard(user_id: int, message_id: int):
+def get_joke_keyboard(message_id: int):
     buttons = []
 
-    if user_id in user_joke_cache:
-        if message_id in user_joke_cache[user_id]:
-            current_lang = user_joke_cache[user_id][message_id]["current"]
-            if current_lang == "ru":
-                buttons.append([InlineKeyboardButton(text="🇬🇧 English", callback_data=ToggleLangCD().pack())])
-            else:
-                buttons.append([InlineKeyboardButton(text="🇷🇺 Русский", callback_data=ToggleLangCD().pack())])
+    if message_id in user_joke_cache:
+        current_lang = user_joke_cache[message_id]["current"]
+        if current_lang == "ru":
+            buttons.append([InlineKeyboardButton(text="🇬🇧 English", callback_data=ToggleLangCD().pack())])
+        else:
+            buttons.append([InlineKeyboardButton(text="🇷🇺 Русский", callback_data=ToggleLangCD().pack())])
+
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

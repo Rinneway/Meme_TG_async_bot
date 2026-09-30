@@ -48,7 +48,17 @@ TOPIC_NAMES = {
     "other": "Разное",
 }
 
-# Подобраны самые активные и релевантные сабреддиты для каждой категории
+PINTEREST_QUERIES = {
+    "cats": "funny cats memes cute",
+    "programming": "programming humor coding memes developer",
+    "gaming": "gaming memes funny gamer video games",
+    "anime": "anime memes funny manga otaku",
+    "work": "office humor work memes funny corporate",
+    "study": "student life study memes funny college",
+    "other": "funny memes dank random humor",
+}
+
+# Оставляем как резервный вариант (fallback), если Pinterest не сработает
 SUBREDDITS = {
     "cats": ["catmemes", "cathumor", "cats", "catsareliquid", "chonkers"],
     "programming": ["programmerhumor", "programmerdadjokes", "codingmemes", "softwaregore", "techsupportgore"],
