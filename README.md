@@ -22,7 +22,7 @@
 - **Сетевые запросы:** `aiohttp` (глобальная сессия для оптимизации)
 - **Конфигурация:** `python-dotenv`
 - **Внешние API:** 
-  - `meme-api.com` (получение мемов из Reddit)
+  - `py3-pinterest` (получение мемов из Pinterest)
   - `v2.jokeapi.dev` (база шуток)
   - `mymemory.translated.net` (бесплатный перевод текста)
 
@@ -60,6 +60,7 @@
 ├── services/               # Внешние сервисы и API
 │   ├── __init__.py         # Пустой файл
 │   ├── api.py              # Запросы к API (мемы, шутки, перевод)
+|   ├── pinterest_client.py # Клиент Pinterest
 │   └── keyboards.py        # Генерация inline-клавиатур
 │
 └── utils/                  # Вспомогательные функции

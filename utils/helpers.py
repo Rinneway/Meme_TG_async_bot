@@ -26,9 +26,7 @@ async def send_joke(message: Message):
             sent_message = await message.answer(joke_ru)
             bot_message_id = sent_message.message_id
 
-            if user_id not in user_joke_cache:
-                user_joke_cache[user_id] = {}
-            user_joke_cache[user_id][bot_message_id] = {
+            user_joke_cache[bot_message_id] = {
                 "en": joke_en,
                 "ru": joke_ru,
                 "current": "ru"
@@ -38,7 +36,7 @@ async def send_joke(message: Message):
 
             try:
                 await sent_message.edit_reply_markup(
-                    reply_markup=get_joke_keyboard(user_id, bot_message_id)
+                    reply_markup=get_joke_keyboard(bot_message_id)
                 )
             except Exception as e:
                 logger.warning(f"Could not update keyboard: {e}")
